@@ -126,11 +126,35 @@
 
         $scope.restart = function (task) {
             ariaNgCommonService.confirm('Confirm Restart', 'Are you sure you want to restart this task? AriaNg will create a same task after clicking OK.', 'info', function () {
+                               
+                
                 $rootScope.loadPromise = aria2TaskService.restartTask(task.gid, function (response) {
                     if (!response.success) {
                         ariaNgCommonService.showError('Failed to restart this task.');
                         return;
                     }
+                    var tasks = [];
+                    tasks.push(task);
+                    $rootScope.loadPromise = aria2TaskService.removeTasks(tasks, function (response) {
+                        if (response.hasError) {
+                            ariaNgCommonService.showError('Failed to remove some task(s).');
+                        }
+
+                        if (!response.hasSuccess) {
+                            return;
+                        }
+
+                        refreshGlobalStat(true);
+
+                        if (!response.hasError) {
+                            if ($location.path() !== '/stopped') {
+                                $location.path('/stopped');
+                            } else {
+                                $route.reload();
+                            }
+                        }
+                    }, true);
+
 
                     refreshGlobalStat(true);
 
